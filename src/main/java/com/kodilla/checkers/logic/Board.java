@@ -1,16 +1,16 @@
-package com.kodilla.checkers.gamelogic;
+package com.kodilla.checkers.logic;
 
-import com.kodilla.checkers.gameio.Piece;
+import com.kodilla.checkers.io.Piece;
 
 public class Board {
 
-    private Piece[][] pieces;
-    private int startCount;
-    private int sideCount;
+    private final Piece[][] pieces;
+    private final int startCount;
+    private final int sideCount;
 
-    public Board(int _sideCount, int _startCount) {
-        startCount = _startCount;
-        sideCount = _sideCount;
+    public Board(int sideCount, int startCount) {
+        this.startCount = startCount;
+        this.sideCount = sideCount;
 
         pieces = new Piece[sideCount][sideCount];
         for (int i = 0; i < pieces.length; i++)

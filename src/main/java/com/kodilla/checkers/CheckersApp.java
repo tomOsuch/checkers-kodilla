@@ -1,9 +1,8 @@
 package com.kodilla.checkers;
 
 
-import com.kodilla.checkers.gameio.BoardIO;
-import com.kodilla.checkers.gamelogic.PlayerAI;
-import com.kodilla.checkers.gamelogic.BoardLogic;
+import com.kodilla.checkers.io.BoardGame;
+import com.kodilla.checkers.logic.PlayerAI;
 import javafx.application.Application;
 import javafx.event.EventHandler;
 import javafx.scene.Group;
@@ -12,15 +11,21 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
+
 
 public class CheckersApp extends Application {
 
-    private BoardLogic boardLogic;
-
+    private void drawMessage(GraphicsContext gc, String str, double x, double y, double size) {
+        gc.setFont(new Font("Arial", size));
+        gc.setFill(Color.BLACK);
+        gc.fillText(str, x, y);
+    }
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage){
         primaryStage.setTitle("Checkers");
 
         Group root = new Group();
@@ -31,31 +36,36 @@ public class CheckersApp extends Application {
         root.getChildren().add(canvas);
 
         GraphicsContext graphicsContext = canvas.getGraphicsContext2D();
-        BoardIO boardIO = new BoardIO(50.0, 50.0, 600.0, 0.1, 8, 3);
-        PlayerAI playerAI = new PlayerAI();
-        boardIO.paintingTheGameBoard(graphicsContext);
+        BoardGame board = new BoardGame(50.0, 50.0, 600.0, 0.1, 8, 3);
+        PlayerAI aiPlayer = new PlayerAI();
+        board.draw(graphicsContext);
+        drawMessage(graphicsContext, "Click C-computer or H-human opponent",
+                50.0, 40.0, 22.0);
 
         primaryScene.setOnMouseClicked(
                 new EventHandler<MouseEvent>() {
                     public void handle(MouseEvent e)
                     {
-                        if (!boardIO.isOpponentSet())
+                        if (!board.isOpponentSet())
                             return;
-                        if (boardIO.isGameOver())
-                            boardIO.reset();
+                        if (board.isGameOverDelayed())
+                            board.reset();
 
-                        if (boardIO.turn() && playerAI.isActive())
-                            playerAI.runTurn(boardIO);
-                        else if (boardIO.someLegalPos())
-                            boardIO.attemptMove(boardIO.decodeMouse(e.getX(), e.getY()));
+                        if (board.turn() && aiPlayer.isActive())
+                            aiPlayer.runTurn(board);
+                        else if (board.someLegalPos())
+                            board.attemptMove(board.decodeMouse(e.getX(), e.getY()));
                         else
-                            boardIO.highlightMoves(boardIO.decodeMouse(e.getX(), e.getY()));
+                            board.highlightMoves(board.decodeMouse(e.getX(), e.getY()));
 
                         graphicsContext.clearRect(0, 0, graphicsContext.getCanvas().getWidth(),
                                 graphicsContext.getCanvas().getHeight());
-                        boardIO.paintingTheGameBoard(graphicsContext);
-
-
+                        board.draw(graphicsContext);
+                        if (board.isOpponentSet())
+                            drawMessage(graphicsContext, board.message(), 50.0, 40.0, 22.0);
+                        else
+                            drawMessage(graphicsContext, "Click C-computer or H-human player",
+                                    50.0, 40.0, 22.0);
                     }
                 });
 
@@ -63,21 +73,20 @@ public class CheckersApp extends Application {
                 new EventHandler<KeyEvent>() {
                     @Override
                     public void handle(KeyEvent event) {
-                        if (!boardIO.isOpponentSet() && event.getText().equals("h")) {
-                            boardIO.setOpponentSet();
-                            playerAI.setInactive();
-                            System.out.println("Ok");
+                        if (!board.isOpponentSet() && event.getText().equals("h")) {
+                            board.setOpponent();
+                            aiPlayer.setInactive();
                         }
-                        else if (!boardIO.isOpponentSet() && event.getText().equals("c")) {
-                            boardIO.setOpponentSet();
-                            playerAI.setActive();
+                        else if (!board.isOpponentSet() && event.getText().equals("c")) {
+                            board.setOpponent();
+                            aiPlayer.setActive();
                         }
 
                         graphicsContext.clearRect(0, 0, graphicsContext.getCanvas().getWidth(),
                                 graphicsContext.getCanvas().getHeight());
-                        boardIO.paintingTheGameBoard(graphicsContext);
-                        if (boardIO.isOpponentSet())
-                            System.out.printf("lost");
+                        board.draw(graphicsContext);
+                        if (board.isOpponentSet())
+                            drawMessage(graphicsContext, board.message(), 50.0, 40.0, 22.0);
                     }
                 });
 

@@ -1,10 +1,9 @@
-package com.kodilla.checkers.gameio;
+package com.kodilla.checkers.io;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 public class Piece {
-
     private boolean empty;
     private boolean color;
     private boolean crown;
@@ -53,8 +52,7 @@ public class Piece {
         empty = true;
     }
 
-    public void paintingThePiece(GraphicsContext graphicsContext, double x, double y, double margin,
-                                 double unitLength) {
+    public void draw(GraphicsContext graphicsContext, double x, double y, double margin, double unitLength) {
         if (empty)
             return;
 
