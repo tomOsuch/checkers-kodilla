@@ -65,4 +65,11 @@ public class Board {
         pieces[boardPosition.getX()][boardPosition.getY()] = new Piece(piece);
     }
 
+    public int getStartCount() {
+        return startCount;
+    }
+
+    public int getSideCount() {
+        return sideCount;
+    }
 }

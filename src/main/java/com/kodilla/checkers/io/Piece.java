@@ -53,9 +53,7 @@ public class Piece {
     }
 
     public void draw(GraphicsContext graphicsContext, double x, double y, double margin, double unitLength) {
-        if (empty)
-            return;
-
+        if (empty) return;
         if (color)
             graphicsContext.setFill(Color.BLACK);
         else graphicsContext.setFill(Color.WHITE);

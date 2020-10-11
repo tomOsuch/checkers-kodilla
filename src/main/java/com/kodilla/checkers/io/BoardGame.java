@@ -2,6 +2,8 @@ package com.kodilla.checkers.io;
 
 import com.kodilla.checkers.logic.Board;
 import com.kodilla.checkers.logic.BoardPosition;
+import com.kodilla.checkers.settings.BoardVisualSettings;
+import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
@@ -14,20 +16,22 @@ public class BoardGame {
     private final double startY;
     private final double sideLength;
     private final double unitLength;
-    private Board board;
     private List<BoardPosition> legalPos;
+    private GraphicsContext graphicsContext;
+    private final Canvas canvas = new Canvas(700, 700);
+    private Board board = new Board(8, 3);
     boolean lastColor;
     boolean gameOver;
     boolean opponentSet;
 
-    public BoardGame(double startX, double startY, double sideLength, double pieceMargin, int sideCount, int startCount) {
-        this.startX = startX;
-        this.startY = startY;
-        this.sideLength = sideLength;
-        this.pieceMargin = pieceMargin;
-        this.unitLength = sideLength / sideCount;
-        board = new Board(sideCount, startCount);
+    public BoardGame(BoardVisualSettings boardSettings) {
+        startX = boardSettings.getStartX();
+        startY = boardSettings.getStartY();
+        sideLength = boardSettings.getSideLength();
+        pieceMargin = boardSettings.getPieceMargin();
+        unitLength = sideLength / board.getSideCount();
         legalPos = new ArrayList<>();
+        graphicsContext = canvas.getGraphicsContext2D();
         lastColor = true;
         gameOver = false;
         opponentSet = false;
@@ -41,6 +45,7 @@ public class BoardGame {
         unitLength = boardGame.unitLength;
         board = new Board(boardGame.board);
         legalPos = new ArrayList<>(boardGame.legalPos);
+        graphicsContext = boardGame.graphicsContext;
         lastColor = boardGame.lastColor;
         gameOver = boardGame.gameOver;
         opponentSet = boardGame.opponentSet;
@@ -53,6 +58,7 @@ public class BoardGame {
         lastColor = boardGame.lastColor;
         gameOver = boardGame.gameOver;
         opponentSet = boardGame.opponentSet;
+        graphicsContext = boardGame.graphicsContext;
     }
 
     public void reset() {
@@ -62,16 +68,17 @@ public class BoardGame {
         opponentSet = false;
     }
 
-    public void highlightMoves(BoardPosition from) {
+    public void highlightMoves(BoardPosition from) throws ClickException {
+        if (from != null){
+            List<BoardPosition> longest = longestAvailableMoves(2, !lastColor);
 
-        List<BoardPosition> longest = longestAvailableMoves(2, !lastColor);
+            if (longest.isEmpty() && from.inBounds(board.side()) &&
+                    !board.get(from).isEmpty() && board.get(from).color() != lastColor)
+                legalPos = getMoves(from);
 
-        if (longest.isEmpty() && from.inBounds(board.side()) &&
-                !board.get(from).isEmpty() && board.get(from).color() != lastColor)
-            legalPos = getMoves(from);
-
-        else for (BoardPosition strike : longest)
-            legalPos.addAll(getMoves(strike));
+            else for (BoardPosition strike : longest)
+                legalPos.addAll(getMoves(strike));
+        }
     }
 
     public void attemptMove(BoardPosition to) {
@@ -88,7 +95,7 @@ public class BoardGame {
         legalPos.clear();
     }
 
-    public void draw(GraphicsContext graphicsContext) {
+    public void draw() {
         graphicsContext.setFill(Color.LIGHTSALMON);
         for (int i = 0; i < board.side(); i++)
             for (int j = (i % 2 == 0) ? 1 : 0; j < board.side(); j += 2)
@@ -287,13 +294,8 @@ public class BoardGame {
 
     private List<BoardPosition> filterShorter(List<BoardPosition> route) {
         int maxDepth = route.isEmpty() ? 0 : route.get(route.size() - 1).routeLen();
-        Iterator<BoardPosition> it = route.iterator();
 
-        while (it.hasNext()) {
-            BoardPosition pos = it.next();
-            if (pos.routeLen() != maxDepth)
-                it.remove();
-        }
+        route.removeIf(pos -> pos.routeLen() != maxDepth);
 
         return route;
     }
@@ -312,5 +314,13 @@ public class BoardGame {
 
     public void setOpponent() {
         opponentSet = true;
+    }
+
+    public Canvas getCanvas() {
+        return canvas;
+    }
+
+    public GraphicsContext getGraphicsContext() {
+        return graphicsContext;
     }
 }
